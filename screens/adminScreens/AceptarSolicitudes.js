@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, TextInput, Linking } from 'react-native';
 import { useAuth } from '../../Context';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -94,6 +94,19 @@ const AceptarSolicitudes = () => {
 const SolicitudCard = ({ solicitud, onUpdateEstado }) => {
   const handleAceptar = () => onUpdateEstado(solicitud.id, 'A');
   const handleRechazar = () => onUpdateEstado(solicitud.id, 'R');
+  
+  const handlePreviewPDF = async () => {
+    try {
+      const url = solicitud.evidencia_pdf;
+      if (url) {
+        await Linking.openURL(url);
+      } else {
+        console.error("No se encontró el enlace al PDF");
+      }
+    } catch (error) {
+      console.error('Error al abrir el PDF:', error);
+    }
+  };
 
   return (
     <View style={styles.card}>
@@ -103,7 +116,11 @@ const SolicitudCard = ({ solicitud, onUpdateEstado }) => {
       <Text style={styles.subtitulo}>
         Estado: {solicitud.estado_solicitud === 'A' ? 'Aceptada' : solicitud.estado_solicitud === 'R' ? 'Rechazada' : 'Pendiente'}
       </Text>
+
       <View style={styles.botones}>
+        <TouchableOpacity onPress={handlePreviewPDF} style={styles.pdfButton}>
+          <Text style={styles.botonTexto}>Ver PDF</Text>
+        </TouchableOpacity>
         <TouchableOpacity onPress={handleAceptar} style={styles.botonAceptar}>
           <Text style={styles.botonTexto}>Aceptar</Text>
         </TouchableOpacity>
@@ -146,10 +163,10 @@ const styles = StyleSheet.create({
     textAlign: 'center'
   },
   subtitulo: {
-    fontSize: 3,
-    fontWeight: '100',
+    fontSize: 18,
+    fontWeight: '500',
     color: '#474747',
-    textAlign: 'center'
+    marginBottom: 6,
   },
   card: {
     backgroundColor: '#fff',
@@ -174,38 +191,35 @@ const styles = StyleSheet.create({
     color: '#1D2A32',
     marginBottom: 6,
   },
-  subtitulo: {
-    fontSize: 18,
-    fontWeight: '500',
-    color: '#474747',
-    marginBottom: 6,
-  },
   botones: {
-    marginTop: 4,
-    marginBottom: 16,
-    paddingTop: 30,
+    marginTop: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  pdfButton: {
+    backgroundColor: '#000000',
+    padding: 10,
+    borderRadius: 5,
+    width: 90,
     alignItems: 'center',
-    flexDirection: 'row', 
-    justifyContent: 'space-around',
   },
   botonAceptar: {
     backgroundColor: '#4CAF50',
     padding: 10,
     borderRadius: 5,
-    width:90,
-    height: 50,
+    width: 90,
+    alignItems: 'center',
   },
   botonRechazar: {
     backgroundColor: '#f44336',
     padding: 10,
     borderRadius: 5,
-    width:90,
-    height: 50,
+    width: 90,
+    alignItems: 'center',
   },
   botonTexto: {
     color: '#fff',
     fontWeight: 'bold',
-    alignItems:'center',
     textAlign: 'center'
   },
 });
