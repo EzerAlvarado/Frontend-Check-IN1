@@ -1,20 +1,29 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useContext } from 'react';
+import * as Notifications from 'expo-notifications';
+import AppNavigator from './AppNavigator';
+import { AuthProvider } from './Context';
+
+
+// Configuración de cómo se mostrarán las notificaciones (pantalla activa vs. en segundo plano)
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 export default function App() {
+  useEffect(() => {
+    // Solicitar permisos de notificaciones en dispositivos iOS
+    Notifications.requestPermissionsAsync();
+  }, []);
+
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
+    <AuthProvider>
+        <AppNavigator />
+    </AuthProvider>
+);
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
