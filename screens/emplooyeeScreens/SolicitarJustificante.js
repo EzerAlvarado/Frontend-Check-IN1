@@ -1,14 +1,24 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, TextInput, Alert } from 'react-native';
-import { useAuth } from '../../Context'; // Importa el contexto de autenticación
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  TextInput,
+  Alert,
+} from "react-native";
+import { useAuth } from "../../Context"; // Importa el contexto de autenticación
 
-const SolicitarJustificante = ({ onJustificanteCreado }) => { // Agrega la prop aquí
+const SolicitarJustificante = ({ onJustificanteCreado }) => {
+  // Agrega la prop aquí
   const { userData, token } = useAuth();
-  const [motivo, setMotivo] = useState('');
-  const [diaJustificar, setDiaJustificar] = useState(new Date().toISOString().split('T')[0]); // Formato YYYY-MM-DD
-  const [mensaje, setMensaje] = useState('');
+  const [motivo, setMotivo] = useState("");
+  const [diaJustificar, setDiaJustificar] = useState(
+    new Date().toISOString().split("T")[0]
+  ); // Formato YYYY-MM-DD
+  const [mensaje, setMensaje] = useState("");
   const [evidenciaPDF, setEvidenciaPDF] = useState(null);
-  const [nombreArchivo, setNombreArchivo] = useState('');
+  const [nombreArchivo, setNombreArchivo] = useState("");
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
@@ -20,39 +30,47 @@ const SolicitarJustificante = ({ onJustificanteCreado }) => { // Agrega la prop 
 
   const handleSubmit = async () => {
     if (!evidenciaPDF) {
-      Alert.alert('Error', 'Debe seleccionar un archivo PDF');
+      Alert.alert("Error", "Debe seleccionar un archivo PDF");
       return;
     }
 
     try {
       const formData = new FormData();
-      formData.append('estado_solicitud', 'P');
-      formData.append('motivo', motivo.trim());
-      formData.append('dia_justificar', diaJustificar);
-      formData.append('clave_empleado', userData.clave);
-      formData.append('usuario_que_registra', userData.id);
-      formData.append('evidencia_pdf', evidenciaPDF);
+      formData.append("estado_solicitud", "P");
+      formData.append("motivo", motivo.trim());
+      formData.append("dia_justificar", diaJustificar);
+      formData.append("clave_empleado", userData.clave);
+      formData.append("usuario_que_registra", userData.id);
+      formData.append("evidencia_pdf", evidenciaPDF);
 
-      const response = await fetch('http://127.0.0.1:8000/api/v1/solicitudes/', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`
-        },
-        body: formData
-      });
+      const response = await fetch(
+        "http://127.0.0.1:8000/api/v1/solicitudes/",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
 
       if (response.ok) {
-        setMensaje('Justificante creado correctamente');
-        setMotivo('');
-        setDiaJustificar(new Date().toISOString().split('T')[0]);
+        setMensaje("Justificante creado correctamente");
+        setMotivo("");
+        setDiaJustificar(new Date().toISOString().split("T")[0]);
         setEvidenciaPDF(null);
-        setNombreArchivo('');
+        setNombreArchivo("");
       } else {
         const errorData = await response.json();
-        Alert.alert('Error', `Error al crear la solicitud: ${errorData.message || 'Error desconocido'}`);
+        Alert.alert(
+          "Error",
+          `Error al crear la solicitud: ${
+            errorData.message || "Error desconocido"
+          }`
+        );
       }
     } catch (error) {
-      Alert.alert('Error', 'Hubo un problema al crear la solicitud');
+      Alert.alert("Error", "Hubo un problema al crear la solicitud");
     }
   };
 
@@ -62,7 +80,7 @@ const SolicitarJustificante = ({ onJustificanteCreado }) => { // Agrega la prop 
         <Text style={styles.tituloMain}>Solicitar justificante</Text>
       </View>
       <Text style={styles.label}>Motivo de la falta</Text>
-      
+
       <TextInput
         style={styles.input}
         placeholder="Ingrese el motivo"
@@ -72,7 +90,7 @@ const SolicitarJustificante = ({ onJustificanteCreado }) => { // Agrega la prop 
       />
 
       <Text style={styles.label}>Día a justificar</Text>
-      
+
       <input
         type="date"
         value={diaJustificar}
@@ -81,7 +99,10 @@ const SolicitarJustificante = ({ onJustificanteCreado }) => { // Agrega la prop 
       />
 
       <Text style={styles.label}>Evidencia PDF</Text>
-      <TouchableOpacity onPress={() => document.getElementById('fileInput').click()} style={styles.uploadButton}>
+      <TouchableOpacity
+        onPress={() => document.getElementById("fileInput").click()}
+        style={styles.uploadButton}
+      >
         <Text style={styles.uploadButtonText}>Cargar PDF</Text>
       </TouchableOpacity>
       <input
@@ -89,10 +110,12 @@ const SolicitarJustificante = ({ onJustificanteCreado }) => { // Agrega la prop 
         type="file"
         accept="application/pdf"
         onChange={handleFileChange}
-        style={{ display: 'none' }}
+        style={{ display: "none" }}
       />
 
-      {nombreArchivo ? <Text style={styles.fileName}>{nombreArchivo}</Text> : null}
+      {nombreArchivo ? (
+        <Text style={styles.fileName}>{nombreArchivo}</Text>
+      ) : null}
 
       <View style={styles.header}>
         <TouchableOpacity onPress={handleSubmit} style={styles.submitButton}>
@@ -107,74 +130,74 @@ const SolicitarJustificante = ({ onJustificanteCreado }) => { // Agrega la prop 
 
 const styles = StyleSheet.create({
   header: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginVertical: 36,
   },
   tituloMain: {
     fontSize: 31,
-    fontWeight: '700',
-    color: '#1D2A32',
+    fontWeight: "700",
+    color: "#1D2A32",
     marginBottom: 6,
   },
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#e8ecf4',
+    backgroundColor: "#e8ecf4",
   },
   label: {
     fontSize: 16,
     marginBottom: 15,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   input: {
     height: 50,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     paddingHorizontal: 16,
     borderRadius: 12,
     fontSize: 15,
-    fontWeight: '500',
-    color: '#222',
+    fontWeight: "500",
+    color: "#222",
     borderWidth: 1,
-    borderColor: '#C9D3DB',
+    borderColor: "#C9D3DB",
     marginBottom: 25,
   },
   uploadButton: {
-    backgroundColor: '#212121',
+    backgroundColor: "#212121",
     padding: 15,
     borderRadius: 15,
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 10,
   },
   uploadButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   fileName: {
     fontSize: 14,
-    color: '#333',
+    color: "#333",
     marginBottom: 15,
-    textAlign: 'center',
+    textAlign: "center",
   },
   submitButton: {
-    backgroundColor: '#212121',
+    backgroundColor: "#212121",
     padding: 15,
     borderRadius: 15,
-    alignItems: 'center',
+    alignItems: "center",
     width: 130,
   },
   submitButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   mensaje: {
     marginTop: 20,
     fontSize: 16,
-    color: '#474747',
-    fontWeight: 'bold',
-    textAlign: 'center',
+    color: "#474747",
+    fontWeight: "bold",
+    textAlign: "center",
   },
 });
 

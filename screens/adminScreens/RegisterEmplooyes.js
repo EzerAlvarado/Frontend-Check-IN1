@@ -1,13 +1,20 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Picker } from 'react-native';
-import axios from 'axios';
-import { useAuth } from '../../Context'; // Asegúrate de importar tu contexto de autenticación
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Picker,
+} from "react-native";
+import axios from "axios";
+import { useAuth } from "../../Context"; // Asegúrate de importar tu contexto de autenticación
 
 const RegistroUsuariosScreen = () => {
-  const [nombre, setNombre] = useState('');
-  const [clave, setClave] = useState('');
+  const [nombre, setNombre] = useState("");
+  const [clave, setClave] = useState("");
   const [esAdmin, setEsAdmin] = useState(false);
-  const [contrasenia, setContrasenia] = useState('');
+  const [contrasenia, setContrasenia] = useState("");
   const { token } = useAuth(); // Obtén el token de autenticación desde tu contexto
 
   const handleAddEmployee = async () => {
@@ -20,21 +27,25 @@ const RegistroUsuariosScreen = () => {
     };
 
     try {
-      const response = await axios.post('http://127.0.0.1:8000/api/v1/usuarios/', newEmployee, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-      console.log('Empleado agregado correctamente:', response.data);
-      
+      const response = await axios.post(
+        "http://127.0.0.1:8000/api/v1/usuarios/",
+        newEmployee,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      console.log("Empleado agregado correctamente:", response.data);
+
       // Opcional: Reinicia los campos después de agregar
-      setNombre('');
-      setClave('');
+      setNombre("");
+      setClave("");
       setEsAdmin(false);
-      setContrasenia('');
+      setContrasenia("");
     } catch (error) {
-      console.error('Error al agregar empleado:', error);
+      console.error("Error al agregar empleado:", error);
     }
   };
 
@@ -82,50 +93,50 @@ const RegistroUsuariosScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F0F0F5',
+    backgroundColor: "#F0F0F5",
     padding: 20,
   },
   title: {
     fontSize: 22,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 20,
   },
   input: {
     height: 50,
-    borderColor: '#E0E0E0',
+    borderColor: "#E0E0E0",
     borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 10,
     marginBottom: 15,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
   },
   pickerContainer: {
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: "#E0E0E0",
     borderRadius: 8,
     marginBottom: 15,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
   },
   pickerLabel: {
     marginLeft: 10,
     marginTop: 5,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   picker: {
     height: 50,
-    width: '100%',
+    width: "100%",
   },
   button: {
-    backgroundColor: '#000',
+    backgroundColor: "#000",
     paddingVertical: 15,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 20,
   },
   buttonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
 });
 

@@ -1,8 +1,7 @@
-import React, { useEffect, useContext } from 'react';
-import * as Notifications from 'expo-notifications';
-import AppNavigator from './AppNavigator';
-import { AuthProvider } from './Context';
-
+import React, { useEffect, useContext } from "react";
+import * as Notifications from "expo-notifications";
+import AppNavigator from "./AppNavigator";
+import { AuthProvider } from "./Context";
 
 // Configuración de cómo se mostrarán las notificaciones (pantalla activa vs. en segundo plano)
 Notifications.setNotificationHandler({
@@ -19,11 +18,9 @@ export default function App() {
     Notifications.requestPermissionsAsync();
   }, []);
 
-
   return (
     <AuthProvider>
-        <AppNavigator />
+      <AppNavigator />
     </AuthProvider>
-);
+  );
 }
-

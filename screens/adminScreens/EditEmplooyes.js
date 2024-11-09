@@ -1,8 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '../../Context';
-import axios from 'axios';
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+  TextInput,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "../../Context";
+import axios from "axios";
 
 const EditEmployeeScreen = ({ navigation }) => {
   const [employees, setEmployees] = useState([]);
@@ -14,36 +21,47 @@ const EditEmployeeScreen = ({ navigation }) => {
 
   const fetchEmployees = async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/api/v1/usuarios/', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      setEmployees(response.data.map(emp => ({
-        ...emp,
-        nombreEditable: emp.nombre,
-        claveEditable: emp.clave,
-        esAdminEditable: emp.es_admin,
-        contraseniaEditable: emp.contrasenia, // campo editable para la contraseña
-      })));
+      const response = await axios.get(
+        "http://127.0.0.1:8000/api/v1/usuarios/",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setEmployees(
+        response.data.map((emp) => ({
+          ...emp,
+          nombreEditable: emp.nombre,
+          claveEditable: emp.clave,
+          esAdminEditable: emp.es_admin,
+          contraseniaEditable: emp.contrasenia, // campo editable para la contraseña
+        }))
+      );
     } catch (error) {
-      console.error('Error al obtener los empleados:', error);
+      console.error("Error al obtener los empleados:", error);
     }
   };
 
   const updateEmployee = async (employeeId, updatedData) => {
     try {
-      const response = await axios.put(`http://127.0.0.1:8000/api/v1/usuarios/${employeeId}/`, updatedData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      setEmployees((prevEmployees) =>
-        prevEmployees.map((employee) => (employee.id === employeeId ? response.data : employee))
+      const response = await axios.put(
+        `http://127.0.0.1:8000/api/v1/usuarios/${employeeId}/`,
+        updatedData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
-      console.log('Empleado actualizado:', response.data);
+      setEmployees((prevEmployees) =>
+        prevEmployees.map((employee) =>
+          employee.id === employeeId ? response.data : employee
+        )
+      );
+      console.log("Empleado actualizado:", response.data);
     } catch (error) {
-      console.error('Error al actualizar el empleado:', error);
+      console.error("Error al actualizar el empleado:", error);
     }
   };
 
@@ -69,7 +87,10 @@ const EditEmployeeScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Empleados</Text>
-      <TouchableOpacity onPress={() => fetchEmployees()} style={styles.reloadButton}>
+      <TouchableOpacity
+        onPress={() => fetchEmployees()}
+        style={styles.reloadButton}
+      >
         <Ionicons name="refresh" size={24} color="#1D2A32" />
       </TouchableOpacity>
       <FlatList
@@ -82,7 +103,9 @@ const EditEmployeeScreen = ({ navigation }) => {
               <TextInput
                 style={styles.input}
                 value={item.nombreEditable}
-                onChangeText={(text) => handleInputChange(text, item.id, 'nombreEditable')}
+                onChangeText={(text) =>
+                  handleInputChange(text, item.id, "nombreEditable")
+                }
               />
             </View>
             <View style={styles.textContainer}>
@@ -90,15 +113,23 @@ const EditEmployeeScreen = ({ navigation }) => {
               <TextInput
                 style={styles.input}
                 value={item.claveEditable}
-                onChangeText={(text) => handleInputChange(text, item.id, 'claveEditable')}
+                onChangeText={(text) =>
+                  handleInputChange(text, item.id, "claveEditable")
+                }
               />
             </View>
             <View style={styles.textContainer}>
               <Text style={styles.headerText}>Rol</Text>
               <TextInput
                 style={styles.input}
-                value={item.esAdminEditable ? 'Admin' : 'Empleado'}
-                onChangeText={(text) => handleInputChange(text === 'Admin', item.id, 'esAdminEditable')}
+                value={item.esAdminEditable ? "Admin" : "Empleado"}
+                onChangeText={(text) =>
+                  handleInputChange(
+                    text === "Admin",
+                    item.id,
+                    "esAdminEditable"
+                  )
+                }
               />
             </View>
             <View style={styles.textContainer}>
@@ -107,12 +138,22 @@ const EditEmployeeScreen = ({ navigation }) => {
                 style={styles.input}
                 secureTextEntry
                 value={item.contraseniaEditable}
-                onChangeText={(text) => handleInputChange(text, item.id, 'contraseniaEditable')}
+                onChangeText={(text) =>
+                  handleInputChange(text, item.id, "contraseniaEditable")
+                }
               />
             </View>
             <TouchableOpacity
               style={styles.actionButton}
-              onPress={() => handleSave(item.id, item.nombreEditable, item.claveEditable, item.esAdminEditable, item.contraseniaEditable)}
+              onPress={() =>
+                handleSave(
+                  item.id,
+                  item.nombreEditable,
+                  item.claveEditable,
+                  item.esAdminEditable,
+                  item.contraseniaEditable
+                )
+              }
             >
               <Text style={styles.actionText}>Guardar</Text>
             </TouchableOpacity>
@@ -135,11 +176,11 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   employeeRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 10,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     padding: 10,
     borderRadius: 5,
   },
@@ -147,7 +188,7 @@ const styles = StyleSheet.create({
     flex: 1,
     marginHorizontal: 5,
     borderBottomWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     padding: 5,
   },
   actionButton: {
@@ -155,18 +196,18 @@ const styles = StyleSheet.create({
     marginLeft: 5,
   },
   actionText: {
-    color: 'blue',
+    color: "blue",
   },
   headerText: {
-    fontWeight: 'bold',
-    textAlign: 'center',
+    fontWeight: "bold",
+    textAlign: "center",
     marginBottom: 3,
   },
   textContainer: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   reloadButton: {
-    alignSelf: 'flex-end',
+    alignSelf: "flex-end",
     marginBottom: 10,
   },
 });
