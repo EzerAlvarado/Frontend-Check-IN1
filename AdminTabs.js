@@ -7,6 +7,10 @@ import ListEmplooyes from './screens/adminScreens/ListEmplooyes'
 import RegistroUsuariosScreen from './screens/adminScreens/RegisterEmplooyes';
 import EditEmployeeScreen from './screens/adminScreens/EditEmplooyes';
 import Feather from '@expo/vector-icons/Feather';
+import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
+import Entypo from '@expo/vector-icons/Entypo';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+
 
 const Tab = createBottomTabNavigator();
 
@@ -18,7 +22,7 @@ const AdminTabs = ({ userName }) => {
       options={{
       tabBarLabel: 'Checador',
       tabBarIcon: ({color, size}) => (
-        <Feather name="user-check" size={24} color="black" />
+        <FontAwesome5 name="user-clock" size={24} color="black" />
       ),
       headerShown: true,
   }}
@@ -29,7 +33,7 @@ const AdminTabs = ({ userName }) => {
         options={{
           tabBarLabel: 'Registro de Horas',
           tabBarIcon: ({ color, size }) => (
-            <Feather name="book-open" size={size} color={color} />
+            <MaterialCommunityIcons name="clipboard-text-clock-outline" size={24} color="black" />
           ),
           headerShown: true,
         }} 
@@ -40,7 +44,7 @@ const AdminTabs = ({ userName }) => {
       options={{
       tabBarLabel: 'Justificantes',
       tabBarIcon: ({color, size}) => (
-        <Feather name="user-check" size={24} color="black" />
+        <Entypo name="text-document" size={24} color="black" />
       ),
       headerShown: true,
   }}
@@ -50,7 +54,7 @@ const AdminTabs = ({ userName }) => {
       options={{
       tabBarLabel: 'emplooyes',
       tabBarIcon: ({color, size}) => (
-        <Feather name="user-check" size={24} color="black" />
+        <Feather name="users" size={24} color="black" />
       ),
       headerShown: true,
   }}
@@ -60,7 +64,7 @@ const AdminTabs = ({ userName }) => {
       options={{
       tabBarLabel: 'Registrar Empleado',
       tabBarIcon: ({color, size}) => (
-        <Feather name="user-check" size={24} color="black" />
+        <Feather name="user-plus" size={24} color="black" />
       ),
       headerShown: true,
   }}

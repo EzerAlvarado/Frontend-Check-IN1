@@ -5,8 +5,8 @@ const AuthContext = createContext();
 
 // Tus credenciales de superusuario
 const CREDENTIALS = {
-    clave: "92233", // Aqui colocas tu clave de superusuario
-    password: "Shekina11" // y aqui la password
+    clave: "1919191", // Aqui colocas tu clave de superusuario
+    password: "messi1234" // y aqui la password
 };
 
 export const AuthProvider = ({ children }) => {
