@@ -5,6 +5,7 @@ import Checador from './screens/Checador';
 import Feather from '@expo/vector-icons/Feather';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import VerJustificantes from './screens/emplooyeeScreens/VerJustificante';
+import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 
 
 const Tab = createBottomTabNavigator();
@@ -16,7 +17,7 @@ function EmployeeTabs() {
       options={{
       tabBarLabel: 'Checador',
       tabBarIcon: ({color, size}) => (
-        <Feather name="user-check" size={24} color="black" />
+        <FontAwesome5 name="user-clock" size={24} color="black" />
       ),
       headerShown: true,
   }}

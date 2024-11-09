@@ -4,6 +4,7 @@ import API from '././api';
 
 const AuthContext = createContext();
 
+
 export const handleLogout = () => {
     localStorage.setItem("token","")
     localStorage.setItem("user", JSON.stringify({}))
