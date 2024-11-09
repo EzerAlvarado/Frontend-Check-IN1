@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, SafeAreaView, TextInput, Text, View } from 'react-native';
 import { useAuth } from '../../Context';
+
 const RegistroHoras = () => {
   const { token } = useAuth();
   const [numeroEmpleado, setNumeroEmpleado] = useState('');

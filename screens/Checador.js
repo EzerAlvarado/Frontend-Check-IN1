@@ -3,8 +3,9 @@ import { StyleSheet, SafeAreaView, View, Image, Text, TouchableOpacity, TextInpu
 import * as Notifications from 'expo-notifications';
 import { AuthContext } from '../Context';
 import { useAuth } from '../Context';
+import {handleLogout} from '../Context';
 
-function Checador() {
+function Checador({navigation}) {
   const { userData, token } = useAuth();
   const [mensajeLlegada, setMensajeLlegada]= useState('');
   const [mensaje, setMensaje] = useState('');
@@ -218,6 +219,14 @@ function Checador() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#e8ecf4' }}>
       <View style={styles.container}>
+          <TouchableOpacity onPress={() => {
+            handleLogout() 
+            navigation.navigate("Login")
+          }}>
+              <View style={styles.btnRed}>
+                <Text style={styles.btnText}>Logout</Text>
+              </View>
+            </TouchableOpacity>
         <View style={styles.header}>
           <Text style={styles.titulo}>Hola {userData?.nombre}!</Text>
           <Text style={styles.subtituloLlegada}>Entras a las: {horaEntradaFormateada} </Text>

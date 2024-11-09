@@ -4,38 +4,41 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { AuthContext } from '../Context';
 import { useAuth } from '../Context';
 
-export default function LoginScreen({ setUserRole}) {
+export default function LoginScreen({setUserRole,navigation}) {
   const [numeroEmpleado, setNumeroEmpleado] = useState('');
-  const [contraseña, setContraseña] = useState('');
+  const [password, setContraseña] = useState('');
   const [mensajito, setMensajito] = useState('');
   //const [inputUsername, setInputUsername] = useState('');
-  const { setUserData, setUsername, token  } = useAuth(); // obtener la función del contexto
+  const { setUserData, setUsername, token,fetchToken} = useAuth(); // obtener la función del contexto
   
   
+ /*  console.log({token}); */
 
   const handleLogin = async () => {
-
+    console.log({clave:numeroEmpleado,password})
+    const _token = await fetchToken({clave:numeroEmpleado,password})
     const response = await fetch(`http://127.0.0.1:8000/api/v1/usuarios/?clave=${numeroEmpleado}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`, // Reemplaza con tu token válido
+        'Authorization': `Bearer ${_token}`, // Reemplaza con tu token válido
       },
     });
-
+    
     
 
     const userData = await response.json();
     const user = userData[0]
-    console.log(userData)
+/*     console.log(user)
+    console.log(userData) */
     if(!userData.ok){
       setMensajito('Datos erroneos!!')
       console.log(setMensajito);
     }
     
-    console.log("Contraseña ingresada:", contraseña, "Tipo:", typeof contraseña);
+    console.log("Contraseña ingresada:", password, "Tipo:", typeof password);
     console.log("Número de empleado ingresado:", numeroEmpleado, "Tipo:", typeof numeroEmpleado);
-    if (contraseña === numeroEmpleado) {
+    if (password === numeroEmpleado) {
       console.log('los datos que ingreso si son iguales')
 
     } else {
@@ -44,21 +47,23 @@ export default function LoginScreen({ setUserRole}) {
 
 
 
-    if (user.es_admin === true){
-      if (user.contrasenia.toString() === contraseña && user.clave.toString() === numeroEmpleado) {
+    if (user?.es_admin ){
+      if (user.contrasenia.toString() === password && user.clave.toString() === numeroEmpleado) {
         setUserData(user);
         setUsername(user.nombre); 
         setUserRole('admin');
+        navigation.navigate("AdminTabs")
         } else {
             //alert('Error');
             console.log('Error');
 
         }
     }else {
-      if (user.clave.toString() === numeroEmpleado  && user.contrasenia.toString() === contraseña ) {
+      if (user.clave.toString() === numeroEmpleado  && user.contrasenia.toString() === password ) {
         setUserData(user);
         setUsername(user.nombre); 
         setUserRole('empleado');
+        navigation.navigate("EmployeeTabs")
         } else {
             //alert('Error');
             console.log('Error');
@@ -103,7 +108,7 @@ export default function LoginScreen({ setUserRole}) {
               style={styles.inputDesign}
               secureTextEntry={true}
               onChangeText={setContraseña}
-              value={contraseña}
+              value={password}
             />
           </View>
 
