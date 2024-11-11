@@ -28,10 +28,22 @@ const RegistroHoras = () => {
     fetchRegistros();
   }, [token]);
 
+  // Obtener la fecha de hoy en formato YYYY-MM-DD para comparar con los registros
+  const obtenerFechaHoy = () => {
+    const hoy = new Date();
+    return hoy.toISOString().split("T")[0]; // Obtener solo la parte de la fecha
+  };
+
   const buscarEmpleado = (clave) => {
+    const fechaHoy = obtenerFechaHoy();
+
+    // Filtrar por empleado y fecha de hoy
     const empleadoRegistro = registros.find(
-      (reg) => reg.clave_empleado === parseInt(clave)
+      (reg) =>
+        reg.clave_empleado === parseInt(clave) &&
+        reg.hora_entrada.startsWith(fechaHoy) // Verifica que la fecha de entrada sea hoy
     );
+
     if (empleadoRegistro) {
       setResultado(empleadoRegistro);
     } else {

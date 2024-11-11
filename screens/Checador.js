@@ -60,22 +60,22 @@ function Checador({ navigation }) {
     // Verificar si la respuesta es exitosa y existen registros
     if (responseRegistro.ok) {
       const registros = await responseRegistro.json();
-
-      if (registros.length > 0) {
-        // Obtener el registro más reciente
-        const registroReciente = registros[0];
-        const horaEntrada = registroReciente.hora_entrada;
-        const horaEntradaFormateada = new Date(
-          horaEntrada
-        ).toLocaleTimeString();
-
-        // Actualizar el estado para indicar que la entrada ya fue registrada
+    
+      // Filtrar registros que coincidan con la fecha actual
+      const registroHoy = registros.find(registro => {
+        const fechaRegistro = new Date(registro.hora_entrada).toLocaleDateString();
+        return fechaRegistro === today.toLocaleDateString(); // Comparar solo la fecha, ignorando la hora
+      });
+    
+      if (registroHoy) {
+        // Si existe un registro para hoy, obtener la hora de entrada
+        const horaEntrada = registroHoy.hora_entrada;
+        const horaEntradaFormateada = new Date(horaEntrada).toLocaleTimeString();
+    
+        // Actualizar el estado para indicar que la entrada ya fue registrada hoy
         setEntradaRegistrada(true);
-        setMensaje(
-          `Ya has registrado tu entrada a las ${horaEntradaFormateada}.`
-        );
-        //showNotification(`Ya has registrado tu entrada a las ${horaEntradaFormateada}.`);
-        return; // Salir si ya hay un registro de entrada
+        setMensaje(`Ya has registrado tu entrada a las ${horaEntradaFormateada}.`);
+        return; // Salir si ya hay un registro de entrada para hoy
       }
     }
 
@@ -158,97 +158,87 @@ function Checador({ navigation }) {
     }
 
     // Obtener los registros de horas del usuario
-    const responseRegistro = await fetch(
-      `http://127.0.0.1:8000/api/v1/registro-horas/?clave_empleado=${userData?.clave}`,
+const responseRegistro = await fetch(
+  `http://127.0.0.1:8000/api/v1/registro-horas/?clave_empleado=${userData?.clave}`,
+  {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }
+);
+
+// Si la solicitud GET fue exitosa, verificar si existe una hora de salida registrada para hoy
+if (responseRegistro.ok) {
+  const registros = await responseRegistro.json();
+
+  // Filtrar el registro de hoy
+  const registroHoy = registros.find(registro => {
+    const fechaRegistro = new Date(registro.hora_entrada).toLocaleDateString();
+    return fechaRegistro === new Date().toLocaleDateString();
+  });
+
+  if (registroHoy) {
+    if (registroHoy.hora_salida) {
+      // Si ya hay una hora de salida registrada para hoy, mostrar mensaje con la hora de salida existente
+      const horaSalidaExistente = new Date(registroHoy.hora_salida).toLocaleTimeString();
+      const mensajeSalidaExistente = `Ya has registrado tu salida a las ${horaSalidaExistente}.`;
+      setMensaje(mensajeSalidaExistente);
+      return; // Terminar la función si ya existe una salida registrada
+    }
+
+    // Si no existe una hora de salida, proceder con el cálculo y el PUT
+    const horaEntrada = new Date(registroHoy.hora_entrada);
+    const horaSalida = new Date(); // Hora actual para la salida
+
+    // Calcular el total de horas trabajadas
+    let totalHoras = (horaSalida - horaEntrada) / (1000 * 60 * 60); // Diferencia en horas
+
+    // Ajustar el cálculo de totalHoras si llegoTarde o seCancelaSuDia
+    if (registroHoy.llego_tarde) {
+      totalHoras -= 1; // Restar 1 hora si llegó tarde
+    }
+    if (registroHoy.se_cancela_su_dia) {
+      totalHoras = 0; // No cuenta horas si se cancela el día
+    }
+
+    // Preparar los datos para el PUT de salida
+    const salidaData = {
+      hora_salida: horaSalida.toISOString(),
+      estado_registro: "A",
+      total_horas: registroHoy.se_cancela_su_dia
+        ? "No cuenta tu día"
+        : totalHoras > 0
+        ? totalHoras.toFixed(2)
+        : "0",
+    };
+
+    // Realizar el PUT para actualizar la hora de salida y total de horas trabajadas
+    const responseSalida = await fetch(
+      `http://127.0.0.1:8000/api/v1/registro-horas/${registroHoy.id}/`,
       {
-        method: "GET",
+        method: "PUT",
         headers: {
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
+        body: JSON.stringify(salidaData),
       }
     );
 
-    // Si la solicitud GET fue exitosa, verificar si existe una hora de salida registrada
-    if (responseRegistro.ok) {
-      const registros = await responseRegistro.json();
-
-      if (registros.length > 0) {
-        const registroReciente = registros[0];
-
-        if (registroReciente.hora_salida) {
-          // Si ya hay una hora de salida registrada, mostrar mensaje con la hora de salida existente
-          const horaSalidaExistente = new Date(
-            registroReciente.hora_salida
-          ).toLocaleTimeString();
-          const mensajeSalidaExistente = `Ya has registrado tu salida a las ${horaSalidaExistente}.`;
-          setMensaje(mensajeSalidaExistente);
-          //showNotification(mensajeSalidaExistente);
-          return; // Terminar la función si ya existe una salida registrada
-        }
-
-        // Si no existe una hora de salida, proceder con el cálculo y el PUT
-        const horaEntrada = new Date(registroReciente.hora_entrada);
-        const horaSalida = new Date(); // Hora actual para la salida
-
-        // Calcular el total de horas trabajadas
-        let totalHoras = (horaSalida - horaEntrada) / (1000 * 60 * 60); // Diferencia en horas
-
-        // Ajustar el cálculo de totalHoras si llegoTarde o seCancelaSuDia
-        if (registroReciente.llego_tarde) {
-          totalHoras -= 1; // Restar 1 hora si llegó tarde
-        }
-        if (registroReciente.se_cancela_su_dia) {
-          totalHoras = 0; // No cuenta horas si se cancela el día
-        }
-
-        // Preparar los datos para el PUT de salida
-        // Preparar los datos para el PUT de salida
-        console.log(registroReciente.se_cancela_su_dia);
-        const salidaData = {
-          hora_salida: horaSalida.toISOString(),
-          estado_registro: "A",
-          total_horas: registroReciente.se_cancela_su_dia
-            ? "No cuenta tu día"
-            : totalHoras > 0
-            ? totalHoras.toFixed(2)
-            : "0",
-        };
-
-        console.log(salidaData.total_horas);
-        // Realizar el PUT para actualizar la hora de salida y total de horas trabajadas
-        const responseSalida = await fetch(
-          `http://127.0.0.1:8000/api/v1/registro-horas/${registroReciente.id}/`,
-          {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify(salidaData),
-          }
-        );
-
-        // Verificar si el PUT fue exitoso
-        if (responseSalida.ok) {
-          const horaSalidaFormateada = horaSalida.toLocaleTimeString();
-          setMensaje(
-            `Salida registrada correctamente a las ${horaSalidaFormateada}.`
-          );
-          //showNotification(`Salida registrada correctamente a las ${horaSalidaFormateada}.`);
-        } else {
-          setMensaje("Error al registrar la salida.");
-          //showNotification("Error al registrar la salida.");
-        }
-      } else {
-        setMensaje(
-          "No se encontró registro de entrada. No puedes registrar la salida."
-        );
-        // showNotification("No se encontró registro de entrada. No puedes registrar la salida.");
-      }
+    // Verificar si el PUT fue exitoso
+    if (responseSalida.ok) {
+      const horaSalidaFormateada = horaSalida.toLocaleTimeString();
+      setMensaje(`Salida registrada correctamente a las ${horaSalidaFormateada}.`);
     } else {
-      setMensaje("Error al verificar el registro de horas.");
-      //showNotification("Error al verificar el registro de horas.");
+      setMensaje("Error al registrar la salida.");
     }
+  } else {
+    setMensaje("No se encontró registro de entrada para hoy. No puedes registrar la salida.");
+  }
+  } else {
+    setMensaje("Error al verificar el registro de horas.");
+  }
   };
 
   return (
