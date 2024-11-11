@@ -18,7 +18,7 @@ const EmployeeScreen = ({ navigation }) => {
   const fetchEmployees = async () => {
     try {
       const response = await axios.get(
-        "http://127.0.0.1:8000/api/v1/usuarios/",
+        "http://192.168.1.190:8000/api/v1/usuarios/",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -45,7 +45,7 @@ const EmployeeScreen = ({ navigation }) => {
 
     try {
       const response = await axios.delete(
-        `http://127.0.0.1:8000/api/v1/usuarios/${employeeId}/`,
+        `http://192.168.1.190:8000/api/v1/usuarios/${employeeId}/`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

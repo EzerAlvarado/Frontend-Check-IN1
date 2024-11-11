@@ -5,10 +5,12 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Picker,
+  Switch,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from "react-native";
 import axios from "axios";
-import { useAuth } from "../../Context"; // Asegúrate de importar tu contexto de autenticación
+import { useAuth } from "../../Context";
 
 const RegistroUsuariosScreen = () => {
   const [nombre, setNombre] = useState("");
@@ -20,15 +22,15 @@ const RegistroUsuariosScreen = () => {
   const handleAddEmployee = async () => {
     const newEmployee = {
       nombre,
-      clave: parseInt(clave, 10), // Convierte la clave a número
+      clave: parseInt(clave, 10),
       es_admin: esAdmin,
       contrasenia,
-      password: contrasenia, // Suponiendo que "password" es igual a "contrasenia"
+      password: contrasenia,
     };
 
     try {
       const response = await axios.post(
-        "http://127.0.0.1:8000/api/v1/usuarios/",
+        "http://192.168.1.190:8000/api/v1/usuarios/",
         newEmployee,
         {
           headers: {
@@ -39,7 +41,6 @@ const RegistroUsuariosScreen = () => {
       );
       console.log("Empleado agregado correctamente:", response.data);
 
-      // Opcional: Reinicia los campos después de agregar
       setNombre("");
       setClave("");
       setEsAdmin(false);
@@ -50,43 +51,44 @@ const RegistroUsuariosScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Registrar Empleado</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Nombre"
-        value={nombre}
-        onChangeText={setNombre}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Contraseña"
-        value={contrasenia}
-        onChangeText={setContrasenia}
-        secureTextEntry
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="No. Empleado"
-        value={clave}
-        onChangeText={setClave}
-        keyboardType="numeric"
-      />
-      <View style={styles.pickerContainer}>
-        <Text style={styles.pickerLabel}>Rol</Text>
-        <Picker
-          selectedValue={esAdmin}
-          onValueChange={(itemValue) => setEsAdmin(itemValue)}
-          style={styles.picker}
-        >
-          <Picker.Item label="Empleado" value={false} />
-          <Picker.Item label="Admin" value={true} />
-        </Picker>
+    <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+      <View style={styles.container}>
+        <Text style={styles.title}>Registrar Empleado</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Nombre"
+          value={nombre}
+          onChangeText={setNombre}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Contraseña"
+          value={contrasenia}
+          onChangeText={setContrasenia}
+          secureTextEntry
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="No. Empleado"
+          value={clave}
+          onChangeText={setClave}
+          keyboardType="numeric"
+        />
+        <View style={styles.switchContainer}>
+          <Text style={styles.switchLabel}>Rol: </Text>
+          <Text style={styles.switchText}>{esAdmin ? "Admin" : "Empleado"}</Text>
+          <Switch
+            value={esAdmin}
+            onValueChange={(value) => setEsAdmin(value)}
+            trackColor={{ false: "#767577", true: "#81b0ff" }}
+            thumbColor={esAdmin ? "#f5dd4b" : "#f4f3f4"}
+          />
+        </View>
+        <TouchableOpacity style={styles.button} onPress={handleAddEmployee}>
+          <Text style={styles.buttonText}>Agregar</Text>
+        </TouchableOpacity>
       </View>
-      <TouchableOpacity style={styles.button} onPress={handleAddEmployee}>
-        <Text style={styles.buttonText}>Agregar</Text>
-      </TouchableOpacity>
-    </View>
+    </TouchableWithoutFeedback>
   );
 };
 
@@ -110,21 +112,19 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     backgroundColor: "#FFFFFF",
   },
-  pickerContainer: {
-    borderWidth: 1,
-    borderColor: "#E0E0E0",
-    borderRadius: 8,
+  switchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 15,
-    backgroundColor: "#FFFFFF",
   },
-  pickerLabel: {
-    marginLeft: 10,
-    marginTop: 5,
+  switchLabel: {
     fontWeight: "bold",
+    fontSize: 16,
+    marginRight: 10,
   },
-  picker: {
-    height: 50,
-    width: "100%",
+  switchText: {
+    fontSize: 16,
+    marginRight: 10,
   },
   button: {
     backgroundColor: "#000",

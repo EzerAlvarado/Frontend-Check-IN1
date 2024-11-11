@@ -12,7 +12,11 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "Se requiere acceso a la galería para cargar archivos PDF",
+        "NSDocumentDirectoryUsageDescription": "Se requiere acceso a los documentos para cargar archivos PDF"
+      }
     },
     "android": {
       "adaptiveIcon": {

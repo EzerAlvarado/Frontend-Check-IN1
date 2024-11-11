@@ -25,7 +25,7 @@ export default function LoginScreen({ setUserRole, navigation }) {
     console.log({ clave: numeroEmpleado, password });
     const _token = await fetchToken({ clave: numeroEmpleado, password });
     const response = await fetch(
-      `http://127.0.0.1:8000/api/v1/usuarios/?clave=${numeroEmpleado}`,
+      `http://192.168.1.190:8000/api/v1/usuarios/?clave=${numeroEmpleado}`,
       {
         method: "GET",
         headers: {

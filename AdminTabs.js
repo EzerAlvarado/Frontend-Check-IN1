@@ -1,8 +1,7 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Button } from "react-native";
+import { Button, TouchableOpacity, Image } from "react-native";
 import Checador from "./screens/Checador";
-import { TouchableOpacity, Image } from "react-native";
 import RegistroHoras from "./screens/adminScreens/RegistroHoras";
 import AceptarSolicitudes from "./screens/adminScreens/AceptarSolicitudes";
 import ListEmplooyes from "./screens/adminScreens/ListEmplooyes";
@@ -12,10 +11,13 @@ import Feather from "@expo/vector-icons/Feather";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import Entypo from "@expo/vector-icons/Entypo";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useNavigation } from "@react-navigation/native"; // Importa el hook useNavigation
 
 const Tab = createBottomTabNavigator();
 
 const AdminTabs = ({ userName, onLogout }) => {
+  const navigation = useNavigation();  // Obtén la instancia de navigation
+
   const handleLogout = () => {
     if (onLogout) onLogout();
   };
@@ -35,11 +37,11 @@ const AdminTabs = ({ userName, onLogout }) => {
             <TouchableOpacity
               onPress={() => {
                 handleLogout();
-                navigation.navigate("Login");
+                navigation.navigate("Login"); // Usa navigation para navegar
               }}
             >
               <Image
-                source={require("./assets/logout.png")} // Ruta de tu imagen
+                source={require("./assets/logout.png")}
                 style={{ width: 24, height: 24, marginRight: 15 }}
               />
             </TouchableOpacity>
@@ -67,7 +69,7 @@ const AdminTabs = ({ userName, onLogout }) => {
               }}
             >
               <Image
-                source={require("./assets/logout.png")} // Ruta de tu imagen
+                source={require("./assets/logout.png")}
                 style={{ width: 24, height: 24, marginRight: 15 }}
               />
             </TouchableOpacity>
@@ -91,7 +93,7 @@ const AdminTabs = ({ userName, onLogout }) => {
               }}
             >
               <Image
-                source={require("./assets/logout.png")} // Ruta de tu imagen
+                source={require("./assets/logout.png")}
                 style={{ width: 24, height: 24, marginRight: 15 }}
               />
             </TouchableOpacity>
@@ -115,7 +117,7 @@ const AdminTabs = ({ userName, onLogout }) => {
               }}
             >
               <Image
-                source={require("./assets/logout.png")} // Ruta de tu imagen
+                source={require("./assets/logout.png")}
                 style={{ width: 24, height: 24, marginRight: 15 }}
               />
             </TouchableOpacity>
@@ -139,7 +141,7 @@ const AdminTabs = ({ userName, onLogout }) => {
               }}
             >
               <Image
-                source={require("./assets/logout.png")} // Ruta de tu imagen
+                source={require("./assets/logout.png")}
                 style={{ width: 24, height: 24, marginRight: 15 }}
               />
             </TouchableOpacity>
@@ -163,7 +165,7 @@ const AdminTabs = ({ userName, onLogout }) => {
               }}
             >
               <Image
-                source={require("./assets/logout.png")} // Ruta de tu imagen
+                source={require("./assets/logout.png")}
                 style={{ width: 24, height: 24, marginRight: 15 }}
               />
             </TouchableOpacity>

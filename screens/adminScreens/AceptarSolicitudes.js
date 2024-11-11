@@ -22,7 +22,7 @@ const AceptarSolicitudes = () => {
     const fetchSolicitudes = async () => {
       try {
         const response = await fetch(
-          "http://127.0.0.1:8000/api/v1/solicitudes/",
+          "http://192.168.1.190:8000/api/v1/solicitudes/",
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -55,7 +55,7 @@ const AceptarSolicitudes = () => {
   const updateEstadoSolicitud = async (id, estado) => {
     try {
       const response = await fetch(
-        `http://127.0.0.1:8000/api/v1/solicitudes/${id}/`,
+        `http://192.168.1.190:8000/api/v1/solicitudes/${id}/`,
         {
           method: "PUT",
           headers: {

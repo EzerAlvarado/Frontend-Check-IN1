@@ -5,14 +5,19 @@ import {
   FlatList,
   TouchableOpacity,
   StyleSheet,
+  Modal,
   TextInput,
+  Switch,
+  SafeAreaView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../Context";
 import axios from "axios";
 
-const EditEmployeeScreen = ({ navigation }) => {
+const EditEmployeeScreen = () => {
   const [employees, setEmployees] = useState([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
   const { token } = useAuth();
 
   useEffect(() => {
@@ -22,7 +27,7 @@ const EditEmployeeScreen = ({ navigation }) => {
   const fetchEmployees = async () => {
     try {
       const response = await axios.get(
-        "http://127.0.0.1:8000/api/v1/usuarios/",
+        "http://192.168.1.190:8000/api/v1/usuarios/",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -35,7 +40,7 @@ const EditEmployeeScreen = ({ navigation }) => {
           nombreEditable: emp.nombre,
           claveEditable: emp.clave,
           esAdminEditable: emp.es_admin,
-          contraseniaEditable: emp.contrasenia, // campo editable para la contraseña
+          contraseniaEditable: emp.contrasenia,
         }))
       );
     } catch (error) {
@@ -46,7 +51,7 @@ const EditEmployeeScreen = ({ navigation }) => {
   const updateEmployee = async (employeeId, updatedData) => {
     try {
       const response = await axios.put(
-        `http://127.0.0.1:8000/api/v1/usuarios/${employeeId}/`,
+        `http://192.168.1.190:8000/api/v1/usuarios/${employeeId}/`,
         updatedData,
         {
           headers: {
@@ -65,150 +70,190 @@ const EditEmployeeScreen = ({ navigation }) => {
     }
   };
 
-  const handleSave = (employeeId, name, clave, es_admin, contrasenia) => {
+  const handleSave = () => {
+    const { id, nombreEditable, claveEditable, esAdminEditable, contraseniaEditable } = selectedEmployee;
     const updatedData = {
-      nombre: name,
-      clave: clave,
-      es_admin: es_admin,
-      contrasenia: contrasenia,
-      password: contrasenia, // siempre envía el campo password igual a contrasenia
+      nombre: nombreEditable,
+      clave: claveEditable,
+      es_admin: esAdminEditable,
+      contrasenia: contraseniaEditable,
+      password: contraseniaEditable,
     };
-    updateEmployee(employeeId, updatedData);
+    updateEmployee(id, updatedData);
+    setModalVisible(false);
   };
 
-  const handleInputChange = (value, employeeId, field) => {
-    setEmployees((prevEmployees) =>
-      prevEmployees.map((emp) =>
-        emp.id === employeeId ? { ...emp, [field]: value } : emp
-      )
-    );
+  const handleInputChange = (value, field) => {
+    setSelectedEmployee((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const openModal = (employee) => {
+    setSelectedEmployee(employee);
+    setModalVisible(true);
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Empleados</Text>
-      <TouchableOpacity
-        onPress={() => fetchEmployees()}
-        style={styles.reloadButton}
-      >
-        <Ionicons name="refresh" size={24} color="#1D2A32" />
-      </TouchableOpacity>
-      <FlatList
-        data={employees}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.employeeRow}>
-            <View style={styles.textContainer}>
-              <Text style={styles.headerText}>Nombre</Text>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#e8ecf4" }}>
+      <View style={styles.container}>
+        <Text style={styles.title}>Lista de Empleados</Text>
+        <TouchableOpacity onPress={fetchEmployees} style={styles.reloadButton}>
+          <Ionicons name="refresh" size={24} color="#1D2A32" />
+        </TouchableOpacity>
+        <FlatList
+          data={employees}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.employeeRow}
+              onPress={() => openModal(item)}
+            >
+              <Text style={styles.employeeName}>{item.nombre}</Text>
+              <Ionicons name="create-outline" size={20} color="#1D2A32" />
+            </TouchableOpacity>
+          )}
+        />
+      </View>
+
+      {/* Modal para editar empleado */}
+      {selectedEmployee && (
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Editar Empleado</Text>
+              <Text style={styles.modalLabel}>Nombre</Text>
               <TextInput
                 style={styles.input}
-                value={item.nombreEditable}
-                onChangeText={(text) =>
-                  handleInputChange(text, item.id, "nombreEditable")
-                }
+                value={selectedEmployee.nombreEditable}
+                onChangeText={(text) => handleInputChange(text, "nombreEditable")}
               />
-            </View>
-            <View style={styles.textContainer}>
-              <Text style={styles.headerText}>Clave</Text>
+              <Text style={styles.modalLabel}>Clave</Text>
               <TextInput
                 style={styles.input}
-                value={item.claveEditable}
-                onChangeText={(text) =>
-                  handleInputChange(text, item.id, "claveEditable")
-                }
+                value={selectedEmployee.claveEditable}
+                onChangeText={(text) => handleInputChange(text, "claveEditable")}
               />
-            </View>
-            <View style={styles.textContainer}>
-              <Text style={styles.headerText}>Rol</Text>
-              <TextInput
-                style={styles.input}
-                value={item.esAdminEditable ? "Admin" : "Empleado"}
-                onChangeText={(text) =>
-                  handleInputChange(
-                    text === "Admin",
-                    item.id,
-                    "esAdminEditable"
-                  )
-                }
+              <Text style={styles.modalLabel}>Admin</Text>
+              <Switch
+                value={selectedEmployee.esAdminEditable}
+                onValueChange={(value) => handleInputChange(value, "esAdminEditable")}
               />
-            </View>
-            <View style={styles.textContainer}>
-              <Text style={styles.headerText}>Contraseña</Text>
+              <Text style={styles.modalLabel}>Contraseña</Text>
               <TextInput
                 style={styles.input}
                 secureTextEntry
-                value={item.contraseniaEditable}
-                onChangeText={(text) =>
-                  handleInputChange(text, item.id, "contraseniaEditable")
-                }
+                value={selectedEmployee.contraseniaEditable}
+                onChangeText={(text) => handleInputChange(text, "contraseniaEditable")}
               />
+              <View style={styles.modalButtons}>
+                <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+                  <Text style={styles.buttonText}>Guardar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={() => setModalVisible(false)}
+                >
+                  <Text style={styles.buttonText}>Cancelar</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() =>
-                handleSave(
-                  item.id,
-                  item.nombreEditable,
-                  item.claveEditable,
-                  item.esAdminEditable,
-                  item.contraseniaEditable
-                )
-              }
-            >
-              <Text style={styles.actionText}>Guardar</Text>
-            </TouchableOpacity>
           </View>
-        )}
-      />
-    </View>
+        </Modal>
+      )}
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     paddingVertical: 24,
-    flexGrow: 1,
-    flexShrink: 1,
-    flexBasis: 0,
+    paddingHorizontal: 16,
+    flex: 1,
   },
   title: {
     fontSize: 24,
+    fontWeight: "700",
+    color: "#1D2A32",
     marginBottom: 16,
   },
   employeeRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 10,
+    padding: 15,
     backgroundColor: "#fff",
-    padding: 10,
-    borderRadius: 5,
+    borderRadius: 10,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: "#C9D3DB",
   },
-  input: {
-    flex: 1,
-    marginHorizontal: 5,
-    borderBottomWidth: 1,
-    borderColor: "#ccc",
-    padding: 5,
-  },
-  actionButton: {
-    padding: 5,
-    marginLeft: 5,
-  },
-  actionText: {
-    color: "blue",
-  },
-  headerText: {
-    fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 3,
-  },
-  textContainer: {
-    alignItems: "center",
+  employeeName: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#1D2A32",
   },
   reloadButton: {
     alignSelf: "flex-end",
     marginBottom: 10,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    padding: 20,
+    marginHorizontal: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#1D2A32",
+    marginBottom: 16,
+    textAlign: "center",
+  },
+  modalLabel: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#474747",
+    marginBottom: 5,
+  },
+  input: {
+    height: 40,
+    backgroundColor: "#f1f1f1",
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    borderColor: "#C9D3DB",
+    borderWidth: 1,
+    marginBottom: 10,
+  },
+  modalButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
+  },
+  saveButton: {
+    backgroundColor: "#1D2A32",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  cancelButton: {
+    backgroundColor: "#A5A5A5",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  buttonText: {
+    color: "#fff",
+    fontWeight: "600",
+    textAlign: "center",
   },
 });
 

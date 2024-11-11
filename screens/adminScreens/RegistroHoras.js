@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, SafeAreaView, TextInput, Text, View } from "react-native";
+import {
+  StyleSheet,
+  SafeAreaView,
+  TextInput,
+  Text,
+  View,
+  TouchableWithoutFeedback,
+  Keyboard,
+} from "react-native";
 import { useAuth } from "../../Context";
 
 const RegistroHoras = () => {
@@ -11,7 +19,7 @@ const RegistroHoras = () => {
   useEffect(() => {
     const fetchRegistros = async () => {
       const response = await fetch(
-        `http://127.0.0.1:8000/api/v1/registro-horas/`,
+        `http://192.168.1.190:8000/api/v1/registro-horas/`,
         {
           method: "GET",
           headers: {
@@ -52,17 +60,17 @@ const RegistroHoras = () => {
   const calcularMinutosTrabajados = (horaEntrada, horaSalida) => {
     const entrada = new Date(horaEntrada);
     const salida = new Date(horaSalida);
-    const diferenciaEnMs = salida - entrada; // Días en milisegundos
-    const diferenciaEnMinutos = Math.floor(diferenciaEnMs / 60000); // Convertir a minutos
-    return diferenciaEnMinutos; // Retornar el total de minutos
+    const diferenciaEnMs = salida - entrada;
+    const diferenciaEnMinutos = Math.floor(diferenciaEnMs / 60000);
+    return diferenciaEnMinutos;
   };
 
   const convertirTotalHorasAMinutos = (total_horas) => {
-    const partes = total_horas.split(":"); // Suponiendo que total_horas es un string en formato HH:MM:SS
+    const partes = total_horas.split(":");
     const horas = parseInt(partes[0]);
     const minutos = parseInt(partes[1]);
 
-    return horas * 60 + minutos; // Convertir todo a minutos
+    return horas * 60 + minutos;
   };
 
   // Función para formatear las horas totales
@@ -77,67 +85,70 @@ const RegistroHoras = () => {
     if (restoMinutos > 0) {
       resultado += ` ${restoMinutos} minuto${restoMinutos !== 1 ? "s" : ""}`;
     }
-    return resultado.trim() || "0 minutos"; // Asegurarse de que al menos muestre 0 minutos si no hay tiempo
+    return resultado.trim() || "0 minutos";
   };
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#e8ecf4" }}>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.titulo}>Buscar Registros</Text>
-          <Text style={styles.subtitulo}>
-            Horas trabajadas por los empleados
-          </Text>
-        </View>
-
-        <TextInput
-          style={styles.inputDesign}
-          placeholder="Número de empleado"
-          value={numeroEmpleado}
-          onChangeText={handleChange}
-          keyboardType="numeric"
-        />
-
-        {/* Encabezados fijos */}
-        <View style={styles.resultadoContainer}>
-          <View style={styles.resultadoFila}>
-            <Text style={styles.subtitulo}>Fecha</Text>
-            <Text style={styles.subtitulo}>Periodo de tiempo</Text>
-            <Text style={styles.subtitulo}>Horas totales</Text>
+    <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "#e8ecf4" }}>
+        <View style={styles.container}>
+          <View style={styles.header}>
+            <Text style={styles.titulo}>Buscar Registros</Text>
+            <Text style={styles.subtitulo}>
+              Horas trabajadas por los empleados
+            </Text>
           </View>
 
-          {resultado && (
+          <TextInput
+            style={styles.inputDesign}
+            placeholder="Número de empleado"
+            value={numeroEmpleado}
+            onChangeText={handleChange}
+            keyboardType="numeric"
+          />
+
+          {/* Encabezados fijos */}
+          <View style={styles.resultadoContainer}>
             <View style={styles.resultadoFila}>
-              <Text style={styles.resultadoTexto}>
-                {new Date(resultado.hora_entrada).toLocaleDateString()}
-              </Text>
-              <Text style={styles.resultadoTexto}>
-                {new Date(resultado.hora_entrada).toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}{" "}
-                -
-                {new Date(resultado.hora_salida).toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}{" "}
-                {/* Mostrar solo HH:MM */}
-              </Text>
-              <Text style={styles.resultadoTexto}>{resultado.total_horas}</Text>
+              <Text style={styles.subtitulo}>Fecha</Text>
+              <Text style={styles.subtitulo}>Periodo de tiempo</Text>
+              <Text style={styles.subtitulo}>Horas totales</Text>
             </View>
-          )}
-          {resultado === null && numeroEmpleado && (
-            <Text style={styles.mensajeError}>Empleado no encontrado.</Text>
-          )}
+
+            {resultado && (
+              <View style={styles.resultadoFila}>
+                <Text style={styles.resultadoTexto}>
+                  {new Date(resultado.hora_entrada).toLocaleDateString()}
+                </Text>
+                <Text style={styles.resultadoTexto}>
+                  {new Date(resultado.hora_entrada).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}{" "}
+                  -
+                  {new Date(resultado.hora_salida).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </Text>
+                <Text style={styles.resultadoTexto}>
+                  {resultado.total_horas}
+                </Text>
+              </View>
+            )}
+            {resultado === null && numeroEmpleado && (
+              <Text style={styles.mensajeError}>Empleado no encontrado.</Text>
+            )}
+          </View>
         </View>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </TouchableWithoutFeedback>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     paddingVertical: 24,
-    //paddingHorizontal: -30,
     flexGrow: 1,
     flexShrink: 1,
     flexBasis: 0,

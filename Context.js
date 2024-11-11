@@ -1,42 +1,56 @@
 // AuthContext.js
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import API from '././api';
+import API from './api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const AuthContext = createContext();
 
-
-export const handleLogout = () => {
-    localStorage.setItem("token","")
-    localStorage.setItem("user", JSON.stringify({}))
- /*    window.location.reload() */
-}
+export const handleLogout = async () => {
+    try {
+        await AsyncStorage.setItem("token", "");
+        await AsyncStorage.setItem("user", JSON.stringify({}));
+        /* Para reiniciar la sesión, podrías agregar un mecanismo adicional en el contexto o en el flujo de navegación en lugar de recargar la ventana. */
+    } catch (error) {
+        console.error("Error during logout:", error);
+    }
+};
 
 export const AuthProvider = ({ children }) => {
     const [userData, setUserData] = useState(null);
     const [username, setUsername] = useState('');
-    const [token, setToken] = useState(localStorage.getItem("token")??"");
+    const [token, setToken] = useState("");
 
-    const fetchToken = async ({clave,password}) => {
+    useEffect(() => {
+        const loadToken = async () => {
+            const storedToken = await AsyncStorage.getItem("token");
+            if (storedToken) {
+                setToken(storedToken);
+            }
+        };
+        loadToken();
+    }, []);
+
+    const fetchToken = async ({ clave, password }) => {
         try {
-            const response = await fetch('http://127.0.0.1:8000/api/token/', {
+            const response = await fetch('http://192.168.1.190:8000/api/token/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({clave,password}), // Usa las credenciales definidas
+                body: JSON.stringify({ clave, password }), // Usa las credenciales definidas
             });
             const data = await response.json();
-            console.log(data.access)
-            setToken(data.access);
-            localStorage.setItem("token",data.access)
-            return data.access
+            if (data.access) {
+                setToken(data.access);
+                await AsyncStorage.setItem("token", data.access);
+            }
+            return data.access;
         } catch (error) {
             console.error("Error fetching token:", error);
-            return ""
+            return "";
         }
     };
 
-    
     return (
         <AuthContext.Provider value={{
             userData, 

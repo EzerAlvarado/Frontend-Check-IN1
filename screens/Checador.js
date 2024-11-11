@@ -48,7 +48,7 @@ function Checador({ navigation }) {
   const handlePressEntrada = async () => {
     // Realizar solicitud para obtener los registros de horas del usuario
     const responseRegistro = await fetch(
-      `http://127.0.0.1:8000/api/v1/registro-horas/?clave_empleado=${userData?.clave}`,
+      `http://192.168.1.190:8000/api/v1/registro-horas/?clave_empleado=${userData?.clave}`,
       {
         method: "GET",
         headers: {
@@ -122,7 +122,7 @@ function Checador({ navigation }) {
 
     // Realizar el POST para registrar la entrada
     const entradaResponse = await fetch(
-      "http://127.0.0.1:8000/api/v1/registro-horas/",
+      "http://192.168.1.190:8000/api/v1/registro-horas/",
       {
         method: "POST",
         headers: {
@@ -159,7 +159,7 @@ function Checador({ navigation }) {
 
     // Obtener los registros de horas del usuario
     const responseRegistro = await fetch(
-      `http://127.0.0.1:8000/api/v1/registro-horas/?clave_empleado=${userData?.clave}`,
+      `http://192.168.1.190:8000/api/v1/registro-horas/?clave_empleado=${userData?.clave}`,
       {
         method: "GET",
         headers: {
@@ -217,7 +217,7 @@ function Checador({ navigation }) {
         console.log(salidaData.total_horas);
         // Realizar el PUT para actualizar la hora de salida y total de horas trabajadas
         const responseSalida = await fetch(
-          `http://127.0.0.1:8000/api/v1/registro-horas/${registroReciente.id}/`,
+          `http://192.168.1.190:8000/api/v1/registro-horas/${registroReciente.id}/`,
           {
             method: "PUT",
             headers: {
