@@ -9,8 +9,8 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from "react-native";
-import axios from "axios";
 import { useAuth } from "../../Context";
+import http from "../../api";
 
 const RegistroUsuariosScreen = () => {
   const [nombre, setNombre] = useState("");
@@ -29,16 +29,12 @@ const RegistroUsuariosScreen = () => {
     };
 
     try {
-      const response = await axios.post(
-        "http://192.168.1.190:8000/api/v1/usuarios/",
-        newEmployee,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await http.post("/api/usuarios/", newEmployee, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
       console.log("Empleado agregado correctamente:", response.data);
 
       setNombre("");
@@ -76,7 +72,9 @@ const RegistroUsuariosScreen = () => {
         />
         <View style={styles.switchContainer}>
           <Text style={styles.switchLabel}>Rol: </Text>
-          <Text style={styles.switchText}>{esAdmin ? "Admin" : "Empleado"}</Text>
+          <Text style={styles.switchText}>
+            {esAdmin ? "Admin" : "Empleado"}
+          </Text>
           <Switch
             value={esAdmin}
             onValueChange={(value) => setEsAdmin(value)}
@@ -91,7 +89,6 @@ const RegistroUsuariosScreen = () => {
     </TouchableWithoutFeedback>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,

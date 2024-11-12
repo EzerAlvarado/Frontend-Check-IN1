@@ -13,11 +13,15 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../Context";
 import axios from "axios";
+import http, { baseurl } from '../../api'
 
 const EditEmployeeScreen = () => {
   const [employees, setEmployees] = useState([]);
+  const [filteredEmployees, setFilteredEmployees] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [noResults, setNoResults] = useState(false);
   const { token } = useAuth();
 
   useEffect(() => {
@@ -26,32 +30,45 @@ const EditEmployeeScreen = () => {
 
   const fetchEmployees = async () => {
     try {
-      const response = await axios.get(
-        "http://192.168.1.190:8000/api/v1/usuarios/",
+      const response = await http.get("/api/usuarios/",
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-      setEmployees(
-        response.data.map((emp) => ({
-          ...emp,
-          nombreEditable: emp.nombre,
-          claveEditable: emp.clave,
-          esAdminEditable: emp.es_admin,
-          contraseniaEditable: emp.contrasenia,
-        }))
-      );
+      const employeeList = response.data.map((emp) => ({
+        ...emp,
+        nombreEditable: emp.nombre,
+        claveEditable: emp.clave,
+        esAdminEditable: emp.es_admin,
+        contraseniaEditable: emp.contrasenia,
+      }));
+      setEmployees(employeeList);
+      setFilteredEmployees(employeeList);
     } catch (error) {
       console.error("Error al obtener los empleados:", error);
     }
   };
 
+  const handleSearch = (text) => {
+    setSearchQuery(text);
+    if (text === "") {
+      setFilteredEmployees(employees);
+      setNoResults(false);
+    } else {
+      const results = employees.filter((employee) =>
+        employee.nombre.toLowerCase().includes(text.toLowerCase())
+      );
+      setFilteredEmployees(results);
+      setNoResults(results.length === 0);
+    }
+  };
+
   const updateEmployee = async (employeeId, updatedData) => {
     try {
-      const response = await axios.put(
-        `http://192.168.1.190:8000/api/v1/usuarios/${employeeId}/`,
+      const response = await http.put(
+        `/api/usuarios/${employeeId}/`,
         updatedData,
         {
           headers: {
@@ -65,6 +82,7 @@ const EditEmployeeScreen = () => {
         )
       );
       console.log("Empleado actualizado:", response.data);
+      handleSearch(searchQuery);
     } catch (error) {
       console.error("Error al actualizar el empleado:", error);
     }
@@ -96,11 +114,20 @@ const EditEmployeeScreen = () => {
     <SafeAreaView style={{ flex: 1, backgroundColor: "#e8ecf4" }}>
       <View style={styles.container}>
         <Text style={styles.title}>Lista de Empleados</Text>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Buscar por nombre"
+          value={searchQuery}
+          onChangeText={handleSearch}
+        />
+        {noResults && (
+          <Text style={styles.noResultsText}>No se encontraron resultados</Text>
+        )}
         <TouchableOpacity onPress={fetchEmployees} style={styles.reloadButton}>
           <Ionicons name="refresh" size={24} color="#1D2A32" />
         </TouchableOpacity>
         <FlatList
-          data={employees}
+          data={filteredEmployees}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
             <TouchableOpacity
@@ -179,6 +206,22 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#1D2A32",
     marginBottom: 16,
+  },
+  searchInput: {
+    height: 40,
+    backgroundColor: "#fff",
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    fontSize: 15,
+    borderWidth: 1,
+    borderColor: "#C9D3DB",
+    marginBottom: 10,
+  },
+  noResultsText: {
+    fontSize: 15,
+    color: "#474747",
+    textAlign: "center",
+    marginBottom: 10,
   },
   employeeRow: {
     flexDirection: "row",

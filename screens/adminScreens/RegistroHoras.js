@@ -9,6 +9,7 @@ import {
   Keyboard,
 } from "react-native";
 import { useAuth } from "../../Context";
+import http from "../../api";
 
 const RegistroHoras = () => {
   const { token } = useAuth();
@@ -18,19 +19,16 @@ const RegistroHoras = () => {
 
   useEffect(() => {
     const fetchRegistros = async () => {
-      const response = await fetch(
-        `http://192.168.1.190:8000/api/v1/registro-horas/`,
-        {
-          method: "GET",
+      try {
+        const response = await http.get("/api/registro-horas/", {
           headers: {
-            "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-        }
-      );
-
-      const data = await response.json();
-      setRegistros(data);
+        });
+        setRegistros(response.data);
+      } catch (error) {
+        console.error("Error al obtener registros:", error);
+      }
     };
 
     fetchRegistros();

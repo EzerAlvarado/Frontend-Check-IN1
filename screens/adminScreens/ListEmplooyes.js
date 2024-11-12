@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../Context";
-import axios from "axios";
+import http from "../../api";
 
 const EmployeeScreen = ({ navigation }) => {
   const [employees, setEmployees] = useState([]);
@@ -17,14 +17,11 @@ const EmployeeScreen = ({ navigation }) => {
 
   const fetchEmployees = async () => {
     try {
-      const response = await axios.get(
-        "http://192.168.1.190:8000/api/v1/usuarios/",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await http.get("/api/usuarios/", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       setEmployees(response.data);
       setError(""); // Limpiar el mensaje de error al actualizar la lista
       console.log("Empleados actualizados:", response.data);
@@ -44,21 +41,17 @@ const EmployeeScreen = ({ navigation }) => {
     }
 
     try {
-      const response = await axios.delete(
-        `http://192.168.1.190:8000/api/v1/usuarios/${employeeId}/`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      console.log("Empleado eliminado:", response.data);
+      await http.delete(`/api/usuarios/${employeeId}/`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      console.log("Empleado eliminado:", employeeId);
       setEmployees((prevEmployees) =>
         prevEmployees.filter((employee) => employee.id !== employeeId)
       );
       setError(""); // Limpiar el mensaje de error si la eliminación fue exitosa
     } catch (error) {
-      // Mostrar el mensaje de error devuelto por el backend, si existe
       setError(error.response?.data?.detail || "Error al eliminar el empleado");
       console.error("Error al eliminar el empleado:", error);
     }

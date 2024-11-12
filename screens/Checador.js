@@ -1,17 +1,13 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   SafeAreaView,
   View,
-  Image,
   Text,
   TouchableOpacity,
-  TextInput,
 } from "react-native";
-import * as Notifications from "expo-notifications";
-import { AuthContext } from "../Context";
 import { useAuth } from "../Context";
-import { handleLogout } from "../Context";
+import http from "../api";
 
 function Checador({ navigation }) {
   const { userData, token } = useAuth();
@@ -19,10 +15,9 @@ function Checador({ navigation }) {
   const [mensaje, setMensaje] = useState("");
   const [entradaRegistrada, setEntradaRegistrada] = useState(false);
   const [salidaRegistrada, setSalidaRegistrada] = useState(false);
-  const [registroId, setRegistroId] = useState(null); // Para almacenar el ID del registro de entrada
+  const [registroId, setRegistroId] = useState(null);
   const [time, setTime] = useState(new Date().toLocaleTimeString());
 
-  // Fecha y hora formateada
   const today = new Date();
   const year = today.getFullYear();
   const month = String(today.getMonth() + 1).padStart(2, "0");
@@ -35,9 +30,8 @@ function Checador({ navigation }) {
     minute: "2-digit",
     hour12: true,
   });
-  const [horaLimite, setHoraLimite] = useState("12:35:00"); // Hora  de salida estática es decir no puede checar antes de esta hora pero si despues
+  const [horaLimite, setHoraLimite] = useState("12:35:00");
 
-  // Actualizar la hora en tiempo real
   useEffect(() => {
     const timer = setInterval(() => {
       setTime(new Date().toLocaleTimeString());
@@ -46,164 +40,118 @@ function Checador({ navigation }) {
   }, []);
 
   const handlePressEntrada = async () => {
-    // Realizar solicitud para obtener los registros de horas del usuario
-    const responseRegistro = await fetch(
-      `http://192.168.1.190:8000/api/v1/registro-horas/?clave_empleado=${userData?.clave}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    try {
+      const responseRegistro = await http.get(
+        `/api/registro-horas/?clave_empleado=${userData?.clave}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    // Verificar si la respuesta es exitosa y existen registros
-    if (responseRegistro.ok) {
-      const registros = await responseRegistro.json();
-
-      if (registros.length > 0) {
-        // Obtener el registro más reciente
-        const registroReciente = registros[0];
+      if (responseRegistro.status === 200 && responseRegistro.data.length > 0) {
+        const registroReciente = responseRegistro.data[0];
         const horaEntrada = registroReciente.hora_entrada;
         const horaEntradaFormateada = new Date(
           horaEntrada
         ).toLocaleTimeString();
-
-        // Actualizar el estado para indicar que la entrada ya fue registrada
         setEntradaRegistrada(true);
-        setMensaje(
-          `Ya has registrado tu entrada a las ${horaEntradaFormateada}.`
-        );
-        //showNotification(`Ya has registrado tu entrada a las ${horaEntradaFormateada}.`);
-        return; // Salir si ya hay un registro de entrada
+        setMensaje(`Ya has registrado tu entrada a las ${horaEntradaFormateada}.`);
+        return;
       }
-    }
 
-    // Si no hay registros o la respuesta no es exitosa, continuar con el POST
-    setEntradaRegistrada(false);
+      setEntradaRegistrada(false);
 
-    // Obtener la hora actual y formatearla
-    const horaActual = new Date(); // Hora en la que el usuario se registra
-    const horaEntradaEstaticaDate = new Date(horaEntradaEstatica); // Hora estática de entrada
+      const horaActual = new Date();
+      const horaEntradaEstaticaDate = new Date(horaEntradaEstatica);
+      let llegoTarde = horaActual - horaEntradaEstaticaDate >= 15 * 60 * 1000;
+      let seCancelaSuDia =
+        horaActual >
+        new Date(horaEntradaEstaticaDate.getTime() + 2 * 60 * 60 * 1000);
 
-    // Determinar si el usuario llegó tarde
-    let llegoTarde = horaActual - horaEntradaEstaticaDate >= 15 * 60 * 1000; // Si llega tarde  por mas de 15 minutos
-
-    // Determinar si el día se cancela
-    let seCancelaSuDia =
-      horaActual >
-      new Date(horaEntradaEstaticaDate.getTime() + 2 * 60 * 60 * 1000); // 2 horas tarde
-
-    console.log(seCancelaSuDia);
-    console.log(llegoTarde);
-    if (seCancelaSuDia) {
-      // Si se cancela el día, llegoTarde se establece en false
-      llegoTarde = false;
-    }
-
-    // Establecer mensajeLlegada con base en las condiciones
-    if (seCancelaSuDia) {
-      setMensajeLlegada("Llegaste 2 horas tarde, así que tu día no cuenta.");
-    } else if (llegoTarde) {
-      setMensajeLlegada("Llegaste tarde, se te descontará la hora.");
-    } else {
-      setMensajeLlegada("Llegaste a buena hora.");
-    }
-
-    // Datos para el POST
-    const entradaData = {
-      hora_entrada: horaActual.toISOString(),
-      clave_empleado: userData?.clave,
-      llego_tarde: llegoTarde,
-      se_cancela_su_dia: seCancelaSuDia,
-      estado_registro: "A",
-      usuario_que_registra: userData?.id,
-    };
-
-    // Realizar el POST para registrar la entrada
-    const entradaResponse = await fetch(
-      "http://192.168.1.190:8000/api/v1/registro-horas/",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(entradaData),
+      if (seCancelaSuDia) {
+        llegoTarde = false;
       }
-    );
 
-    // Verificar si el POST fue exitoso
-    if (entradaResponse.ok) {
-      setEntradaRegistrada(true); // Marcar que la entrada ha sido registrada
-      const horaEntradaFormateada = horaActual.toLocaleTimeString();
-      setMensaje(
-        `Entrada registrada correctamente a las ${horaEntradaFormateada}.`
+      setMensajeLlegada(
+        seCancelaSuDia
+          ? "Llegaste 2 horas tarde, así que tu día no cuenta."
+          : llegoTarde
+          ? "Llegaste tarde, se te descontará la hora."
+          : "Llegaste a buena hora."
       );
-      //showNotification(`Entrada registrada correctamente a las ${horaEntradaFormateada}.`);
-    } else {
+
+      const entradaData = {
+        hora_entrada: horaActual.toISOString(),
+        clave_empleado: userData?.clave,
+        llego_tarde: llegoTarde,
+        se_cancela_su_dia: seCancelaSuDia,
+        estado_registro: "A",
+        usuario_que_registra: userData?.id,
+      };
+
+      const entradaResponse = await http.post(
+        "/api/registro-horas/",
+        entradaData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (entradaResponse.status === 201) {
+        setEntradaRegistrada(true);
+        const horaEntradaFormateada = horaActual.toLocaleTimeString();
+        setMensaje(`Entrada registrada correctamente a las ${horaEntradaFormateada}.`);
+      } else {
+        setMensaje("Error al registrar la entrada.");
+      }
+    } catch (error) {
+      console.error("Error al registrar la entrada:", error);
       setMensaje("Error al registrar la entrada.");
-      //showNotification("Error al registrar la entrada.");
     }
   };
 
   const handlePressSalida = async () => {
-    // Si no se ha registrado la entrada, mostrar un mensaje y salir
     if (!entradaRegistrada) {
-      const mensajeError =
-        "No has registrado la entrada. No puedes registrar la salida.";
-      setMensaje(mensajeError);
-      //showNotification(mensajeError);
+      setMensaje("No has registrado la entrada. No puedes registrar la salida.");
       return;
     }
 
-    // Obtener los registros de horas del usuario
-    const responseRegistro = await fetch(
-      `http://192.168.1.190:8000/api/v1/registro-horas/?clave_empleado=${userData?.clave}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    try {
+      const responseRegistro = await http.get(
+        `/api/registro-horas/?clave_empleado=${userData?.clave}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    // Si la solicitud GET fue exitosa, verificar si existe una hora de salida registrada
-    if (responseRegistro.ok) {
-      const registros = await responseRegistro.json();
-
-      if (registros.length > 0) {
-        const registroReciente = registros[0];
+      if (responseRegistro.status === 200 && responseRegistro.data.length > 0) {
+        const registroReciente = responseRegistro.data[0];
 
         if (registroReciente.hora_salida) {
-          // Si ya hay una hora de salida registrada, mostrar mensaje con la hora de salida existente
           const horaSalidaExistente = new Date(
             registroReciente.hora_salida
           ).toLocaleTimeString();
-          const mensajeSalidaExistente = `Ya has registrado tu salida a las ${horaSalidaExistente}.`;
-          setMensaje(mensajeSalidaExistente);
-          //showNotification(mensajeSalidaExistente);
-          return; // Terminar la función si ya existe una salida registrada
+          setMensaje(`Ya has registrado tu salida a las ${horaSalidaExistente}.`);
+          return;
         }
 
-        // Si no existe una hora de salida, proceder con el cálculo y el PUT
         const horaEntrada = new Date(registroReciente.hora_entrada);
-        const horaSalida = new Date(); // Hora actual para la salida
+        const horaSalida = new Date();
+        let totalHoras = (horaSalida - horaEntrada) / (1000 * 60 * 60);
 
-        // Calcular el total de horas trabajadas
-        let totalHoras = (horaSalida - horaEntrada) / (1000 * 60 * 60); // Diferencia en horas
-
-        // Ajustar el cálculo de totalHoras si llegoTarde o seCancelaSuDia
         if (registroReciente.llego_tarde) {
-          totalHoras -= 1; // Restar 1 hora si llegó tarde
+          totalHoras -= 1;
         }
         if (registroReciente.se_cancela_su_dia) {
-          totalHoras = 0; // No cuenta horas si se cancela el día
+          totalHoras = 0;
         }
 
-        // Preparar los datos para el PUT de salida
-        // Preparar los datos para el PUT de salida
-        console.log(registroReciente.se_cancela_su_dia);
         const salidaData = {
           hora_salida: horaSalida.toISOString(),
           estado_registro: "A",
@@ -214,40 +162,28 @@ function Checador({ navigation }) {
             : "0",
         };
 
-        console.log(salidaData.total_horas);
-        // Realizar el PUT para actualizar la hora de salida y total de horas trabajadas
-        const responseSalida = await fetch(
-          `http://192.168.1.190:8000/api/v1/registro-horas/${registroReciente.id}/`,
+        const responseSalida = await http.put(
+          `/api/registro-horas/${registroReciente.id}/`,
+          salidaData,
           {
-            method: "PUT",
             headers: {
-              "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
             },
-            body: JSON.stringify(salidaData),
           }
         );
 
-        // Verificar si el PUT fue exitoso
-        if (responseSalida.ok) {
+        if (responseSalida.status === 200) {
           const horaSalidaFormateada = horaSalida.toLocaleTimeString();
-          setMensaje(
-            `Salida registrada correctamente a las ${horaSalidaFormateada}.`
-          );
-          //showNotification(`Salida registrada correctamente a las ${horaSalidaFormateada}.`);
+          setMensaje(`Salida registrada correctamente a las ${horaSalidaFormateada}.`);
         } else {
           setMensaje("Error al registrar la salida.");
-          //showNotification("Error al registrar la salida.");
         }
       } else {
-        setMensaje(
-          "No se encontró registro de entrada. No puedes registrar la salida."
-        );
-        // showNotification("No se encontró registro de entrada. No puedes registrar la salida.");
+        setMensaje("No se encontró registro de entrada. No puedes registrar la salida.");
       }
-    } else {
-      setMensaje("Error al verificar el registro de horas.");
-      //showNotification("Error al verificar el registro de horas.");
+    } catch (error) {
+      console.error("Error al registrar la salida:", error);
+      setMensaje("Error al registrar la salida.");
     }
   };
 
@@ -284,14 +220,10 @@ function Checador({ navigation }) {
           </View>
 
           {mensaje ? <Text style={styles.subtitulo}>{mensaje}</Text> : null}
-
-          {mensajeLlegada ? (
-            <Text style={styles.subtituloLlegada}>{mensajeLlegada} </Text>
-          ) : null}
+          {mensajeLlegada ? <Text style={styles.subtituloLlegada}>{mensajeLlegada} </Text> : null}
 
           <Text style={styles.formFooter}>
-            Si llegas 15 minutos tarde se te descontará la hora. Si llegas 2
-            horas tarde se te descontará el día.
+            Si llegas 15 minutos tarde se te descontará la hora. Si llegas 2 horas tarde se te descontará el día.
           </Text>
         </View>
       </View>
@@ -300,7 +232,6 @@ function Checador({ navigation }) {
 }
 
 export default Checador;
-
 const styles = StyleSheet.create({
   container: {
     paddingVertical: 24,

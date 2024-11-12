@@ -10,6 +10,7 @@ import { useAuth } from "../../Context"; // Importa el contexto de autenticació
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import SolicitarJustificante from "./SolicitarJustificante";
+import http from "../../api";
 
 const VerJustificantes = () => {
   const [solicitudes, setSolicitudes] = useState([]);
@@ -17,8 +18,8 @@ const VerJustificantes = () => {
 
   const fetchSolicitudes = async () => {
     try {
-      const response = await fetch(
-        `http://127.0.0.1:8000/api/v1/solicitudes/?clave_empleado=${userData.clave}`,
+      const response = await http.get(
+        `/api/solicitudes/?clave_empleado=${userData.clave}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }

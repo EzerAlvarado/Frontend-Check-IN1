@@ -1,6 +1,6 @@
 // AuthContext.js
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import API from './api';
+import http from './api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const AuthContext = createContext();
@@ -9,7 +9,6 @@ export const handleLogout = async () => {
     try {
         await AsyncStorage.setItem("token", "");
         await AsyncStorage.setItem("user", JSON.stringify({}));
-        /* Para reiniciar la sesión, podrías agregar un mecanismo adicional en el contexto o en el flujo de navegación en lugar de recargar la ventana. */
     } catch (error) {
         console.error("Error during logout:", error);
     }
@@ -32,14 +31,9 @@ export const AuthProvider = ({ children }) => {
 
     const fetchToken = async ({ clave, password }) => {
         try {
-            const response = await fetch('http://192.168.1.190:8000/api/token/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ clave, password }), // Usa las credenciales definidas
-            });
-            const data = await response.json();
+            const response = await http.post('api/token/', { clave, password });
+            const data = response.data; // Cambiado de response.json() a response.data
+    
             if (data.access) {
                 setToken(data.access);
                 await AsyncStorage.setItem("token", data.access);

@@ -8,64 +8,55 @@ import {
   Alert,
 } from "react-native";
 import { useAuth } from "../../Context"; // Importa el contexto de autenticación
-import DateTimePicker from '@react-native-community/datetimepicker'; // Importa DateTimePicker
-import * as DocumentPicker from 'expo-document-picker'; // Usa expo-document-picker
+import DateTimePicker from "@react-native-community/datetimepicker";
+import * as DocumentPicker from "expo-document-picker";
+import http from "../../api";
 
 const SolicitarJustificante = ({ onJustificanteCreado }) => {
   const { userData, token } = useAuth();
   const [motivo, setMotivo] = useState("");
   const [diaJustificar, setDiaJustificar] = useState(
     new Date().toISOString().split("T")[0]
-  ); // Formato YYYY-MM-DD
+  );
   const [mensaje, setMensaje] = useState("");
   const [evidenciaPDF, setEvidenciaPDF] = useState(null);
   const [nombreArchivo, setNombreArchivo] = useState("");
-  const [showDatePicker, setShowDatePicker] = useState(false); // Para mostrar el DateTimePicker
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const handleFileChange = async () => {
     try {
       const res = await DocumentPicker.getDocumentAsync({
-        type: 'application/pdf', // Solo archivos PDF
+        type: "application/pdf",
       });
 
-      console.log("Document Picker response:", res);
-
-      // Verifica que la respuesta sea del tipo 'success'
-      if (res.type === 'success') {
-        const selectedFile = res.assets[0]; // Acceder al archivo desde 'assets'
-        console.log("Archivo seleccionado:", selectedFile);
-
-        // Verifica que 'selectedFile' tiene 'uri' y 'base64'
+      if (res.type === "success") {
+        const selectedFile = res.assets[0];
         if (selectedFile.uri) {
-          const base64Data = selectedFile.uri.split(',')[1]; // Extraemos el base64 de la URI
+          const base64Data = selectedFile.uri.split(",")[1];
 
-          // Actualiza el estado con el archivo y su base64
           setEvidenciaPDF({
             base64: base64Data,
             mimeType: selectedFile.mimeType,
             name: selectedFile.name,
           });
-          setNombreArchivo(selectedFile.name); // Guardamos el nombre del archivo para mostrarlo
-          console.log("Archivo correctamente asignado al estado:", selectedFile);
+          setNombreArchivo(selectedFile.name);
         } else {
           Alert.alert("Error", "El archivo seleccionado no es válido.");
         }
-      } else if (res.type === 'cancel') {
+      } else if (res.type === "cancel") {
         console.log("El usuario canceló la selección del archivo");
       } else {
         console.log("Otro tipo de respuesta:", res);
       }
     } catch (err) {
       console.error("Error al seleccionar el archivo", err);
-      Alert.alert('Error', 'Hubo un problema al seleccionar el archivo');
+      Alert.alert("Error", "Hubo un problema al seleccionar el archivo");
     }
   };
 
   const handleSubmit = async () => {
-    // Verifica que 'evidenciaPDF' no esté vacío y que contenga un archivo válido
     if (!evidenciaPDF || !evidenciaPDF.base64) {
       Alert.alert("Error", "Debe seleccionar un archivo PDF.");
-      console.log("evidenciaPDF está vacío o no tiene base64:", evidenciaPDF);
       return;
     }
 
@@ -77,25 +68,20 @@ const SolicitarJustificante = ({ onJustificanteCreado }) => {
       formData.append("clave_empleado", userData.clave);
       formData.append("usuario_que_registra", userData.id);
 
-      // Verifica si el archivo tiene base64 antes de agregarlo al FormData
       if (evidenciaPDF.base64) {
         formData.append("evidencia_pdf", {
-          uri: `data:${evidenciaPDF.mimeType};base64,${evidenciaPDF.base64}`, // Se genera el URI en base64
-          type: evidenciaPDF.mimeType, // Tipo MIME del archivo
-          name: evidenciaPDF.name, // Nombre del archivo
+          uri: `data:${evidenciaPDF.mimeType};base64,${evidenciaPDF.base64}`,
+          type: evidenciaPDF.mimeType,
+          name: evidenciaPDF.name,
         });
       }
 
-      const response = await fetch(
-        "http://192.168.1.190:8000/api/v1/solicitudes/",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
-        }
-      );
+      const response = await http.post("/api/solicitudes/", formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       if (response.ok) {
         setMensaje("Justificante creado correctamente");
@@ -103,6 +89,7 @@ const SolicitarJustificante = ({ onJustificanteCreado }) => {
         setDiaJustificar(new Date().toISOString().split("T")[0]);
         setEvidenciaPDF(null);
         setNombreArchivo("");
+        if (onJustificanteCreado) onJustificanteCreado();
       } else {
         const errorData = await response.json();
         Alert.alert(
@@ -143,7 +130,7 @@ const SolicitarJustificante = ({ onJustificanteCreado }) => {
         <TextInput
           style={styles.input}
           value={diaJustificar}
-          editable={false} // El input no debe ser editable directamente
+          editable={false}
         />
       </TouchableOpacity>
 

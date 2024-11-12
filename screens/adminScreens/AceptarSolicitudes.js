@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { useAuth } from "../../Context";
 import { SafeAreaView } from "react-native-safe-area-context";
+import http, { baseurl } from '../../api'
 
 const AceptarSolicitudes = () => {
   const [solicitudes, setSolicitudes] = useState([]);
@@ -21,15 +22,11 @@ const AceptarSolicitudes = () => {
   useEffect(() => {
     const fetchSolicitudes = async () => {
       try {
-        const response = await fetch(
-          "http://192.168.1.190:8000/api/v1/solicitudes/",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        const data = await response.json();
-        setSolicitudes(data);
-        setFilteredSolicitudes(data); // Inicialmente mostramos todas
+        const response = await http.get("/api/solicitudes/", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setSolicitudes(response.data);
+        setFilteredSolicitudes(response.data);
       } catch (error) {
         console.error("Error al obtener solicitudes:", error);
       }
@@ -54,18 +51,14 @@ const AceptarSolicitudes = () => {
 
   const updateEstadoSolicitud = async (id, estado) => {
     try {
-      const response = await fetch(
-        `http://192.168.1.190:8000/api/v1/solicitudes/${id}/`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ estado_solicitud: estado }),
-        }
-      );
-      if (response.ok) {
+      const response = await http.put(`/api/solicitudes/${id}/`, {
+        estado_solicitud: estado,
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (response.status === 200) {
         setSolicitudes((prevSolicitudes) =>
           prevSolicitudes.map((solicitud) =>
             solicitud.id === id

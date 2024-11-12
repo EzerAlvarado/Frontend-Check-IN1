@@ -6,91 +6,73 @@ import {
   Text,
   TouchableOpacity,
   TextInput,
-  Alert,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { AuthContext } from "../Context";
 import { useAuth } from "../Context";
+import http from "../api"; // Importa tu archivo API
 
 export default function LoginScreen({ setUserRole, navigation }) {
   const [numeroEmpleado, setNumeroEmpleado] = useState("");
   const [password, setContraseña] = useState("");
   const [mensajito, setMensajito] = useState("");
-  //const [inputUsername, setInputUsername] = useState('');
-  const { setUserData, setUsername, token, fetchToken } = useAuth(); // obtener la función del contexto
-
-  /*  console.log({token}); */
-
+  const { setUserData, setUsername, fetchToken } = useAuth();
+  
   const handleLogin = async () => {
-    console.log({ clave: numeroEmpleado, password });
-    const _token = await fetchToken({ clave: numeroEmpleado, password });
-    const response = await fetch(
-      `http://192.168.1.190:8000/api/v1/usuarios/?clave=${numeroEmpleado}`,
-      {
-        method: "GET",
+    try {
+      console.log({ clave: numeroEmpleado, password });
+      const _token = await fetchToken({ clave: numeroEmpleado, password });
+
+      const response = await http.get(`api/usuarios/?clave=${numeroEmpleado}`, {
         headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${_token}`, // Reemplaza con tu token válido
+          Authorization: `Bearer ${_token}`,
         },
+      });
+
+      const userData = response.data; // Cambiado de response.json() a response.data
+      const user = userData[0];
+
+      if (!response.status === 200) {
+        // Verifica el status de la respuesta
+        setMensajito("Datos incorrectos!");
+        return;
       }
-    );
 
-    const userData = await response.json();
-    const user = userData[0];
-    /*     console.log(user)
-    console.log(userData) */
-    if (!userData.ok) {
-      setMensajito("Datos erroneos!!");
-      console.log(setMensajito);
-    }
-
-    console.log("Contraseña ingresada:", password, "Tipo:", typeof password);
-    console.log(
-      "Número de empleado ingresado:",
-      numeroEmpleado,
-      "Tipo:",
-      typeof numeroEmpleado
-    );
-    if (password === numeroEmpleado) {
-      console.log("los datos que ingreso si son iguales");
-    } else {
-      console.log("los datos NOOOO son iguales");
-    }
-
-    if (user?.es_admin) {
-      if (
-        user.contrasenia.toString() === password &&
-        user.clave.toString() === numeroEmpleado
-      ) {
-        setUserData(user);
-        setUsername(user.nombre);
-        setUserRole("admin");
-        navigation.navigate("AdminTabs");
+      if (user?.es_admin) {
+        if (
+          user.contrasenia.toString() === password &&
+          user.clave.toString() === numeroEmpleado
+        ) {
+          setUserData(user);
+          setUsername(user.nombre);
+          setUserRole("admin");
+          navigation.navigate("AdminTabs");
+        } else {
+          console.log("Error: Credenciales inválidas para admin");
+        }
       } else {
-        //alert('Error');
-        console.log("Error");
+        if (
+          user.clave.toString() === numeroEmpleado &&
+          user.contrasenia.toString() === password
+        ) {
+          setUserData(user);
+          setUsername(user.nombre);
+          setUserRole("empleado");
+          navigation.navigate("EmployeeTabs");
+        } else {
+          console.log("Error: Credenciales inválidas para empleado");
+        }
       }
-    } else {
-      if (
-        user.clave.toString() === numeroEmpleado &&
-        user.contrasenia.toString() === password
-      ) {
-        setUserData(user);
-        setUsername(user.nombre);
-        setUserRole("empleado");
-        navigation.navigate("EmployeeTabs");
-      } else {
-        //alert('Error');
-        console.log("Error");
-      }
-      //alert('No eres admin o.o');
+    } catch (error) {
+      console.error("Error en el inicio de sesión:", error);
+      setMensajito("Error de conexión, intente nuevamente.");
     }
   };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#e8ecf4" }}>
       <KeyboardAwareScrollView style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.titulo}> Login </Text>
+          <Text style={styles.titulo}>Login</Text>
           <Text style={styles.subtitulo}>
             Logeate si eres administrador o empleado!
           </Text>
@@ -126,7 +108,7 @@ export default function LoginScreen({ setUserRole, navigation }) {
 
           <View style={styles.botonArea}>
             <View style={styles.input}>
-              <Text style={styles.textoError}>{mensajito} </Text>
+              <Text style={styles.textoError}>{mensajito}</Text>
             </View>
 
             <TouchableOpacity onPress={handleLogin}>
