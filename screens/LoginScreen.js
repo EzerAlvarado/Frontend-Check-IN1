@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   StyleSheet,
   SafeAreaView,
@@ -12,11 +12,26 @@ import { useAuth } from "../Context";
 import http from "../api"; // Importa tu archivo API
 
 export default function LoginScreen({ setUserRole, navigation }) {
+  const [isFullScreen, setIsFullScreen] = useState(false);
   const [numeroEmpleado, setNumeroEmpleado] = useState("");
   const [password, setContraseña] = useState("");
   const [mensajito, setMensajito] = useState("");
   const { setUserData, setUsername, fetchToken } = useAuth();
-  
+
+  const enableFullScreen = useCallback(() => {
+    const element = document.documentElement; // Elemento raíz (HTML)
+    if (element.requestFullscreen) {
+      element.requestFullscreen();
+    } else if (element.webkitRequestFullscreen) {
+      element.webkitRequestFullscreen(); // Safari/Chrome
+    } else if (element.mozRequestFullScreen) {
+      element.mozRequestFullScreen(); // Firefox
+    } else if (element.msRequestFullscreen) {
+      element.msRequestFullscreen(); // IE/Edge
+    }
+    setIsFullScreen(true);
+  }, []);
+
   const handleLogin = async () => {
     try {
       console.log({ clave: numeroEmpleado, password });
@@ -28,11 +43,10 @@ export default function LoginScreen({ setUserRole, navigation }) {
         },
       });
 
-      const userData = response.data; // Cambiado de response.json() a response.data
+      const userData = response.data;
       const user = userData[0];
 
       if (!response.status === 200) {
-        // Verifica el status de la respuesta
         setMensajito("Datos incorrectos!");
         return;
       }
@@ -67,6 +81,27 @@ export default function LoginScreen({ setUserRole, navigation }) {
       setMensajito("Error de conexión, intente nuevamente.");
     }
   };
+
+  // Pantalla de inicio con el mensaje para habilitar pantalla completa
+  if (!isFullScreen) {
+    return (
+      <div
+        style={{
+          height: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "#282c34",
+          color: "#fff",
+          fontSize: "24px",
+          cursor: "pointer",
+        }}
+        onClick={enableFullScreen} // Activar pantalla completa al hacer clic
+      >
+        Haga clic para entrar a pantalla completa
+      </div>
+    );
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#e8ecf4" }}>
