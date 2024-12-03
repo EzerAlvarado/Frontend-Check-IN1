@@ -98,7 +98,7 @@ export default function LoginScreen({ setUserRole, navigation }) {
         }}
         onClick={enableFullScreen} // Activar pantalla completa al hacer clic
       >
-        Haga clic para entrar a pantalla completa
+        Haga clic para continuar
       </div>
     );
   }
